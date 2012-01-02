@@ -5,6 +5,8 @@ require 'socket'
 require 'optparse'
 
 class MPD
+  class ACK < StandardError; end
+
   Around = 5
 
   def initialize (host, port, &block)
@@ -52,7 +54,11 @@ class MPD
     result = [] unless block
 
     @sock.puts(cmd + ' ' + args.map {|it| %Q["#{it}"] }.join(' '))
-    while not /\AOK/ === (line = @sock.gets)
+
+    while line = @sock.gets
+      break if /\AOK/ === line
+      raise ACK, line if /\AACK/ === line
+
       if block
         block.call(line.chomp)
       else

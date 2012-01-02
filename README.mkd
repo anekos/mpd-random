@@ -1,23 +1,25 @@
 
 Usage:
---------
+---------------
 
 >   # ./mpd_random [--host HOST] [--port PORT] [--daemon]
 
 
 License:
---------
+---------------
 
 mpd_random is BSD style license.
 see also COPYING.
 
+
 Author:
--------
+---------------
 
 * anekos <anekos@snca.net>
 
+
 Cat:
--------
+---------------
 
 **Kawaii**.
 

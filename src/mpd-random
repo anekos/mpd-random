@@ -99,10 +99,17 @@ options = Options.new(ARGV)
 
 Process.daemon if options.daemon
 
-MPD.new(options.host, options.port) do
-  |mpd|
-  loop do
-    mpd.check
+loop do
+  begin
+    MPD.new(options.host, options.port) do
+      |mpd|
+      loop do
+        mpd.check
+        sleep 10
+      end
+    end
+  rescue Errno::EPIPE, Errno::ECONNREFUSED => e
+    STDERR.puts("Reconnect for #{e}")
     sleep 10
   end
 end

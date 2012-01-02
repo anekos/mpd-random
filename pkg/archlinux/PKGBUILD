@@ -1,0 +1,39 @@
+# Maintainer: anekos <anekos@snca.net>
+pkgname=mpd-random-git
+pkgver=20120102
+pkgrel=1
+pkgdesc="Randomly add songs to MPD"
+url="https://github.com/anekos/mpd-random"
+arch=('i686' 'x86_64')
+license=('BSD')
+depends=('git' 'ruby')
+optdepends=()
+makedepends=()
+conflicts=()
+replaces=()
+backup=()
+
+source=()
+md5sums=()
+
+_gitroot="https://github.com/anekos/mpd-random.git"
+_gitname="mpd-random"
+
+build () {
+  cd $srcdir
+
+  if [ -d "$_gitname" ]
+  then
+    cd $_gitname && git pull origin
+  else
+    git clone $_gitroot && cd $_gitname
+  fi
+}
+
+package () {
+  cd $srcdir/$_gitname
+  install -Dm755 src/mpd-random $pkgdir/usr/bin/mpd-random
+  install -Dm755 pkg/archlinux/etc/rc.d/mpd-random $pkgdir/etc/rc.d/mpd-random
+}
+
+# vim:set ts=2 sw=2 et:

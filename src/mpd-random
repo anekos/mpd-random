@@ -1,0 +1,68 @@
+#!/usr/bin/ruby
+# vim:set fileencoding=utf-8 :
+
+require 'socket'
+
+class MPD
+  def initialize (host = 'localhost', port = 6600, &block)
+    @sock = TCPSocket.open("127.0.0.1", 6600)
+    @sock.set_encoding('UTF-8')
+
+    raise 'This not MPD' unless /\AOK MPD / === @sock.gets
+    get_filelist
+
+    if block
+      begin
+        block.call(self)
+      ensure
+        close
+      end
+    end
+  end
+
+  def check
+    d = 5 - command('playlist').size
+    return if d <= 0
+    @files.sample(d).each {|it| command('add', it) }
+  end
+
+  def close
+    @sock.close
+  end
+
+  private
+
+  def get_filelist
+    @files = []
+
+    command('listall') do
+      |it|
+      _, uri = *it.match(/\Afile:\s*(.+)$/)
+      @files << uri if uri
+    end
+  end
+
+  def command (command, *args, &block)
+    result = [] unless block
+
+    @sock.puts(command + ' ' + args.map {|it| %Q["#{it}"] }.join(' '))
+    while not /\AOK/ === (line = @sock.gets)
+      if block
+        block.call(line.chomp)
+      else
+        result << line
+      end
+    end
+
+    result unless block
+  end
+end
+
+
+MPD.new do
+  |mpd|
+  loop do
+    mpd.check
+    sleep 10
+  end
+end

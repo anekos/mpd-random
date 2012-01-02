@@ -2,10 +2,11 @@
 # vim:set fileencoding=utf-8 :
 
 require 'socket'
+require 'optparse'
 
 class MPD
-  def initialize (host = 'localhost', port = 6600, &block)
-    @sock = TCPSocket.open("127.0.0.1", 6600)
+  def initialize (host, port, &block)
+    @sock = TCPSocket.open(host, port)
     @sock.set_encoding('UTF-8')
 
     raise 'This not MPD' unless /\AOK MPD / === @sock.gets
@@ -58,8 +59,32 @@ class MPD
   end
 end
 
+class Options
+  attr_reader :daemon, :host, :port
 
-MPD.new do
+  def initialize (argv)
+    @host = 'localhost'
+    @port = 6600
+    parse(argv)
+  end
+
+  private
+
+  def parse (argv)
+    argv = argv.dup
+    opts = OptionParser.new
+    opts.on('-d', '--daemon') {|v| @daemon = true }
+    opts.on('-h', '--host HOST') {|v| @host = v }
+    opts.on('-p', '--port PORT') {|v| @port = v.to_i }
+    opts.parse(argv)
+  end
+end
+
+options = Options.new(ARGV)
+
+Process.daemon if options.daemon
+
+MPD.new(options.host, options.port) do
   |mpd|
   loop do
     mpd.check
